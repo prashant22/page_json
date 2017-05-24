@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * @file
+ * Examples demonstrating how we alter form or add custom submit handler for form.
+ */
+
+use \Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_form_alter().
+ */
+function custom_axelerant_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  // This is an example of what is known as an alter hook. The $form paremater
+  // in this case represents an already complete Form API array and our hook
+  // implementation is being given the opportunity to make changes to the
+  // existing data structure before it's used. Inovking and alter hooks is a
+  // common pattern anytime lists or complex data structures are assembled.
+  // hook_form_alter(), which allows you to manipulate any form, is one of the
+  // most commonly implemented hooks.
+  //
+  // @see hook_form_alter()
+  // @see hook_form_FORM_ID_alter()
+  //
+  // If this is the site information page, change the submit button text or add Site API Key
+  // field.
+  if ($form_id === 'system_site_information_settings') {
+    
+    // get value of siteapikey Variable
+    $config = \Drupal::config('custom_axelerant.settings');
+    $default_siteapikey = $config->get('siteapikey');
+    
+    // add Site API Key to site information form
+    $form['site_api_key'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Site API Key'),
+      '#default_value' => isset($default_siteapikey) ? $default_siteapikey : 'No API Key yet',
+      '#size' => 60,
+      '#maxlength' => 128,
+    );
+    
+    // change submit button value text
+    $form['actions']['submit']['#value'] = 'Update Configuration';
+    
+    // set custom submit handler for site information form.
+    $form['#submit'][] = 'custom_submit_api_key';
+  }
+}
+
+function custom_submit_api_key(&$form, FormStateInterface $form_state, $form_id) {
+  // get value of submit trough Site API Key field.
+  $element = $form['site_api_key'];
+  $siteapikey = $form_state->getValue($element['#parents']);
+  
+  // set value of siteapikey Variable
+  $config = \Drupal::service('config.factory')->getEditable('custom_axelerant.settings');
+  $config->set('siteapikey', $siteapikey)
+      ->save();
+  
+  // display a message to user that the Site API Key has been saved
+  drupal_set_message(t('Site API Key has been saved with %string', array('%string' => $siteapikey)));
+}

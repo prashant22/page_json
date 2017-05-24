@@ -1,0 +1,7 @@
+custom_axelerant.content:
+  path: '/page_json/{siteAPI}/{nid}' 
+  defaults: 
+    _controller: '\Drupal\custom_axelerant\Controller\ExampleController::content' 
+    _title: 'Node Value in JSON'
+  requirements: 
+    _permission: 'access content' 
